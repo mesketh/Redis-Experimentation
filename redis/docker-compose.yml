@@ -1,0 +1,54 @@
+version: '3.7'
+networks:
+  app-tier:
+    driver: bridge
+services:
+  redis-master:
+    container_name: "redis-master"
+    image: redis
+    ports:
+      - "6379:6379"
+    command: "redis-server /etc/master/master.conf"
+    volumes:
+      - "./data/master:/data/"
+      - "./conf/master:/etc/master/"
+    networks:
+      - app-tier
+  redis-replica:
+    container_name: "redis-replica"
+    image: redis
+    ports:
+      - "6380:6379"
+    command: "redis-server /etc/replica/replica.conf"
+    volumes:
+      - "./data/replica:/data/"
+      - "./conf/replica:/etc/replica/"
+    networks:
+      - app-tier
+  redis-sentinel:
+    container_name: "redis-sentinel"
+    image: redis
+#    environment:
+#      - REDIS_MASTER_HOST=127.0.0.1
+    ports:
+      - "26379:26379"
+    command: "redis-server /etc/sentinel/sentinel.conf --sentinel"
+    volumes:
+      - "./conf/sentinel:/etc/sentinel/"
+      - "./data/sentinel:/data/"
+    networks:
+      - app-tier
+    depends_on:
+      - redis-master
+      - redis-replica
+  animal-name-service:
+    container_name: "animal-name-service"
+    image: animal-name-svc:1.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis-master
+      - redis-replica
+      - redis-sentinel
+    networks:
+      - app-tier
