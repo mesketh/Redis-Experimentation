@@ -54,14 +54,10 @@ class AnimalNameResource {
         InputStream inputStream = new ClassPathResource("/animals.txt").getInputStream();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             List<String> animalNames = reader.lines().collect(Collectors.toList());
-            animalNamesLUT = animalNames.stream().collect(Collectors.toMap(this::nextInt, Function.identity()));
+            animalNamesLUT = animalNames.stream().collect(Collectors.toMap(s -> animalCounter++, Function.identity()));
         }
 
         log.debug("Loaded {} names", animalNamesLUT.size());
-    }
-
-    private Integer nextInt(String value) {
-        return animalCounter++;
     }
 
     @GetMapping(path = "/animal/{id}")
